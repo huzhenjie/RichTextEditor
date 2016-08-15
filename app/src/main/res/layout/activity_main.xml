@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.scrat.app.richtexteditor.MainActivity">
+
+    <HorizontalScrollView
+        android:id="@+id/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/darker_gray"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="setBold"
+                android:scaleType="center"
+                android:src="@drawable/ic_format_bold" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="setItalic"
+                android:scaleType="center"
+                android:src="@drawable/ic_format_italic" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="setUnderline"
+                android:scaleType="center"
+                android:src="@drawable/ic_format_underline" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="setStrikethrough"
+                android:scaleType="center"
+                android:src="@drawable/ic_format_strikethrough" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="setBullet"
+                android:scaleType="center"
+                android:src="@drawable/ic_format_bullet" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="setQuote"
+                android:scaleType="center"
+                android:src="@drawable/ic_format_quote" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:selectableItemBackground"
+                android:contentDescription="@null"
+                android:onClick="insertImg"
+                android:scaleType="center"
+                android:src="@drawable/ic_insert_link" />
+
+            <!--<ImageButton android:id="@+id/clear"-->
+            <!--android:contentDescription="@null"-->
+            <!--android:layout_width="48dp"-->
+            <!--android:layout_height="48dp"-->
+            <!--android:src="@drawable/ic_format_clear"-->
+            <!--android:scaleType="center"-->
+            <!--android:background="?android:selectableItemBackground">-->
+            <!--</ImageButton>-->
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/tools"
+        android:layout_alignParentTop="true"
+        android:fillViewport="true">
+
+        <com.scrat.app.richtext.RichEditText
+            android:id="@+id/rich_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:gravity="top|start"
+            android:paddingEnd="16dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:scrollbars="vertical"
+            app:bulletColor="#FF2196F3"
+            app:bulletGapWidth="8dp"
+            app:bulletRadius="2dp"
+            app:historyEnable="true"
+            app:historySize="99"
+            app:linkColor="#FF2196F3"
+            app:linkUnderline="true"
+            app:quoteCapWidth="2dp"
+            app:quoteColor="#FF2196F3"
+            app:quoteStripeWidth="8dp" />
+    </ScrollView>
+</RelativeLayout>
