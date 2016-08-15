@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.redo:
                 richEditText.redo();
                 break;
-            case R.id.github:
+            case R.id.export:
                 Log.e("xxx", richEditText.toHtml());
                 break;
             default:
