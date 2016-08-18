@@ -247,9 +247,9 @@ public class RichEditText extends EditText implements TextWatcher {
 
     public void image(Uri uri, Bitmap pic) {
         String path = uri.getPath();
-        SpannableString ss = new SpannableString(path);
+        SpannableString ss = new SpannableString(" ");
         MyImgSpan span = new MyImgSpan(getContext(), pic, uri);
-        ss.setSpan(span, 0, path.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ss.setSpan(span, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         int start = getSelectionStart();
         getEditableText().insert(start, ss);// 设置ss要添加的位置
     }
