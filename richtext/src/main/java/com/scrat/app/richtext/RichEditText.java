@@ -236,7 +236,7 @@ public class RichEditText extends EditText implements TextWatcher {
     // Image ===============================================================================
 
     public void image(final Uri uri, final int maxWidth) {
-        Glide.with(getContext()).load(uri).asBitmap().centerCrop().into(new SimpleTarget<Bitmap>() {
+        Glide.with(getContext()).load(uri).asBitmap().thumbnail(0.1f).error(R.drawable.ic_pic_fill).placeholder(R.drawable.ic_pic_fill).centerCrop().into(new SimpleTarget<Bitmap>() {
             @Override
             public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                 Bitmap bitmap = BitmapUtil.zoomBitmapToFixWidth(resource, maxWidth);
@@ -246,8 +246,7 @@ public class RichEditText extends EditText implements TextWatcher {
     }
 
     public void image(Uri uri, Bitmap pic) {
-        String path = uri.getPath();
-        SpannableString ss = new SpannableString(" ");
+        SpannableString ss = new SpannableString(" \n");
         MyImgSpan span = new MyImgSpan(getContext(), pic, uri);
         ss.setSpan(span, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         int start = getSelectionStart();
