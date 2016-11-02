@@ -245,6 +245,11 @@ public class RichEditText extends EditText implements TextWatcher {
         });
     }
 
+    public void image(final Uri uri) {
+        int width = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
+        image(uri, width);
+    }
+
     public void image(Uri uri, Bitmap pic) {
         SpannableString ss = new SpannableString(" \n");
         MyImgSpan span = new MyImgSpan(getContext(), pic, uri);
