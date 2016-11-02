@@ -236,7 +236,7 @@ public class RichEditText extends EditText implements TextWatcher {
     // Image ===============================================================================
 
     public void image(final Uri uri, final int maxWidth) {
-        Glide.with(getContext()).load(uri).asBitmap().thumbnail(0.1f).error(R.drawable.ic_pic_fill).placeholder(R.drawable.ic_pic_fill).centerCrop().into(new SimpleTarget<Bitmap>() {
+        Glide.with(getContext()).load(uri).asBitmap().thumbnail(0.1f).centerCrop().error(R.drawable.ic_pic_fill).placeholder(R.drawable.ic_pic_fill).centerCrop().into(new SimpleTarget<Bitmap>() {
             @Override
             public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                 Bitmap bitmap = BitmapUtil.zoomBitmapToFixWidth(resource, maxWidth);
