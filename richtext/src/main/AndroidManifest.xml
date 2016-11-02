@@ -2,7 +2,6 @@
     package="com.scrat.app.richtext">
 
     <application
-        android:label="@string/app_name"
         android:supportsRtl="true">
 
     </application>
