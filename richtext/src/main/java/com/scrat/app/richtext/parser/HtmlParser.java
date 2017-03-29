@@ -168,7 +168,7 @@ public class HtmlParser {
                 }
 
                 if (span instanceof ImageSpan) {
-                    out.append("<img src=\"");
+                    out.append("<img width=\"100%\" src=\"");
                     out.append(((ImageSpan) span).getSource());
                     out.append("\">");
 
