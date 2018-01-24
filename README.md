@@ -19,7 +19,9 @@ User `Glide 4` lib. Support `gif`
 
 ## Screenshots
 
-![](http://biuugames.huya.com/rich_text_editor_preview.gif)
+[http://biuugames.huya.com/rich_text_editor_preview.gif](http://biuugames.huya.com/rich_text_editor_preview.gif)
+
+![](https://raw.githubusercontent.com/huzhenjie/RichTextEditor/master/images/preview.gif)
 
 # How to
 
