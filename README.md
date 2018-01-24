@@ -2,7 +2,24 @@
 
 Android 下的富文本编辑器
 
-![](https://raw.githubusercontent.com/huzhenjie/RichTextEditor/master/images/preview.png)
+## Features
+
+> Redo
+> Undo
+> Bold
+> Bullet
+> Clear
+> Italic
+> Quote
+> Underline
+> StrikeThrough
+> Link
+
+User `Glide 4` lib. Support `gif`
+
+## Screenshots
+
+![](https://raw.githubusercontent.com/huzhenjie/RichTextEditor/master/images/preview.gif)
 
 # How to
 
@@ -23,6 +40,14 @@ allprojects {
 
 ```
 dependencies {
-    compile 'com.github.huzhenjie:RichTextEditor:1.0.2'
+    compile 'com.github.huzhenjie:RichTextEditor:1.0.3'
 }
 ```
+
+# Important
+
+```
+1.0.3 Glide version 4.3.0
+1.0.2 Glide version 3.7.0
+```
+

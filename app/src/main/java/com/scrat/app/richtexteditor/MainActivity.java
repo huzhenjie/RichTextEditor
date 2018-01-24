@@ -27,10 +27,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         richEditText = (RichEditText) findViewById(R.id.rich_text);
-        richEditText.fromHtml("<blockquote>Android 端的富文本编辑器</blockquote>" +
-                "<ul><li>支持实时编辑</li><li>支持图片插入,加粗,斜体,下划线,删除线,列表,引用块,超链接,撤销与恢复等</li><li>使用<u>Glide</u>加载图片</li></ul>\n" +
-                "<img src=\"http://img5.duitang.com/uploads/item/201409/07/20140907195835_GUXNn.thumb.700_0.jpeg\">" +
-                "<img src=\"http://www.bz55.com/uploads/allimg/150707/139-150FG61K2.jpg\">");
+        richEditText.fromHtml(
+                "<blockquote>Android 端的富文本编辑器</blockquote>" +
+                "<ul>" +
+                        "<li>支持实时编辑</li>" +
+                        "<li>支持图片插入,加粗,斜体,下划线,删除线,列表,引用块,超链接,撤销与恢复等</li>" +
+                        "<li>使用<u>Glide 4</u>加载图片</li>" +
+                "</ul>" +
+                "<img src=\"http://biuugames.huya.com/221d89ac671feac1.gif\"><br><br>" +
+                "<img src=\"http://biuugames.huya.com/5-160222145918.jpg\"><br><br>"
+        );
     }
 
     @Override
