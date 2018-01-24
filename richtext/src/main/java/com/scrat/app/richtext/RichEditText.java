@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -20,11 +21,11 @@ import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 import android.util.AttributeSet;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.scrat.app.richtext.glide.GlideApp;
+import com.scrat.app.richtext.glide.GlideRequests;
 import com.scrat.app.richtext.img.GlideImageGeter;
 import com.scrat.app.richtext.parser.HtmlParser;
 import com.scrat.app.richtext.parser.MarkdownParser;
@@ -38,7 +39,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RichEditText extends EditText implements TextWatcher {
+public class RichEditText extends AppCompatEditText implements TextWatcher {
     public static final int FORMAT_BOLD = 0x01;
     public static final int FORMAT_ITALIC = 0x02;
     public static final int FORMAT_UNDERLINED = 0x03;
@@ -63,31 +64,27 @@ public class RichEditText extends EditText implements TextWatcher {
     private int historyCursor = 0;
 
     private SpannableStringBuilder inputBefore;
+    private GlideRequests glideRequests;
     private Editable inputLast;
 
     public RichEditText(Context context) {
         super(context);
-        init(null);
+        init(context, null);
     }
 
     public RichEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(attrs);
+        init(context, attrs);
     }
 
     public RichEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(attrs);
+        init(context, attrs);
     }
 
-    @SuppressWarnings("NewApi")
-    public RichEditText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        init(attrs);
-    }
-
-    private void init(AttributeSet attrs) {
-        TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.RichEditText);
+    private void init(Context context, AttributeSet attrs) {
+        glideRequests = GlideApp.with(context);
+        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.RichEditText);
         bulletColor = array.getColor(R.styleable.RichEditText_bulletColor, 0);
         bulletRadius = array.getDimensionPixelSize(R.styleable.RichEditText_bulletRadius, 0);
         bulletGapWidth = array.getDimensionPixelSize(R.styleable.RichEditText_bulletGapWidth, 0);
@@ -151,7 +148,8 @@ public class RichEditText extends EditText implements TextWatcher {
             return;
         }
 
-        getEditableText().setSpan(new StyleSpan(style), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        StyleSpan span = new StyleSpan(style);
+        getEditableText().setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     protected void styleInvalid(int style, int start, int end) {
@@ -169,13 +167,14 @@ public class RichEditText extends EditText implements TextWatcher {
             return;
         }
 
-        StyleSpan[] spans = getEditableText().getSpans(start, end, StyleSpan.class);
+        Editable editable = getEditableText();
+        StyleSpan[] spans = editable.getSpans(start, end, StyleSpan.class);
         List<Part> list = new ArrayList<>();
 
         for (StyleSpan span : spans) {
             if (span.getStyle() == style) {
-                list.add(new Part(getEditableText().getSpanStart(span), getEditableText().getSpanEnd(span)));
-                getEditableText().removeSpan(span);
+                list.add(new Part(editable.getSpanStart(span), editable.getSpanEnd(span)));
+                editable.removeSpan(span);
             }
         }
 
@@ -210,39 +209,50 @@ public class RichEditText extends EditText implements TextWatcher {
         if (start == end) {
             if (start - 1 < 0 || start + 1 > getEditableText().length()) {
                 return false;
-            } else {
-                StyleSpan[] before = getEditableText().getSpans(start - 1, start, StyleSpan.class);
-                StyleSpan[] after = getEditableText().getSpans(start, start + 1, StyleSpan.class);
-                return before.length > 0 && after.length > 0 && before[0].getStyle() == style && after[0].getStyle() == style;
             }
-        } else {
-            StringBuilder builder = new StringBuilder();
 
-            // Make sure no duplicate characters be added
-            for (int i = start; i < end; i++) {
-                StyleSpan[] spans = getEditableText().getSpans(i, i + 1, StyleSpan.class);
-                for (StyleSpan span : spans) {
-                    if (span.getStyle() == style) {
-                        builder.append(getEditableText().subSequence(i, i + 1).toString());
-                        break;
-                    }
+            StyleSpan[] before = getEditableText().getSpans(start - 1, start, StyleSpan.class);
+            StyleSpan[] after = getEditableText().getSpans(start, start + 1, StyleSpan.class);
+
+            return before.length > 0
+                    && after.length > 0
+                    && before[0].getStyle() == style
+                    && after[0].getStyle() == style;
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        // Make sure no duplicate characters be added
+        for (int i = start; i < end; i++) {
+            StyleSpan[] spans = getEditableText().getSpans(i, i + 1, StyleSpan.class);
+            for (StyleSpan span : spans) {
+                if (span.getStyle() == style) {
+                    builder.append(getEditableText().subSequence(i, i + 1).toString());
+                    break;
                 }
             }
-
-            return getEditableText().subSequence(start, end).toString().equals(builder.toString());
         }
+
+        return getEditableText().subSequence(start, end).toString().equals(builder.toString());
     }
 
     // Image ===============================================================================
 
     public void image(final Uri uri, final int maxWidth) {
-        Glide.with(getContext()).load(uri).asBitmap().thumbnail(0.1f).centerCrop().error(R.drawable.ic_pic_fill).placeholder(R.drawable.ic_pic_fill).centerCrop().into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                Bitmap bitmap = BitmapUtil.zoomBitmapToFixWidth(resource, maxWidth);
-                image(uri, bitmap);
-            }
-        });
+        glideRequests.asBitmap()
+                .load(uri)
+                .thumbnail(0.1f)
+                .centerCrop()
+                .error(R.drawable.ic_pic_fill)
+                .placeholder(R.drawable.ic_pic_fill)
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(
+                            Bitmap resource, Transition<? super Bitmap> transition) {
+                        Bitmap bitmap = BitmapUtil.zoomBitmapToFixWidth(resource, maxWidth);
+                        image(uri, bitmap);
+                    }
+                });
     }
 
     public void image(final Uri uri) {
@@ -273,7 +283,8 @@ public class RichEditText extends EditText implements TextWatcher {
             return;
         }
 
-        getEditableText().setSpan(new UnderlineSpan(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        UnderlineSpan span = new UnderlineSpan();
+        getEditableText().setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     protected void underlineInvalid(int start, int end) {
@@ -281,12 +292,13 @@ public class RichEditText extends EditText implements TextWatcher {
             return;
         }
 
-        UnderlineSpan[] spans = getEditableText().getSpans(start, end, UnderlineSpan.class);
+        Editable editable = getEditableText();
+        UnderlineSpan[] spans = editable.getSpans(start, end, UnderlineSpan.class);
         List<Part> list = new ArrayList<>();
 
         for (UnderlineSpan span : spans) {
-            list.add(new Part(getEditableText().getSpanStart(span), getEditableText().getSpanEnd(span)));
-            getEditableText().removeSpan(span);
+            list.add(new Part(editable.getSpanStart(span), editable.getSpanEnd(span)));
+            editable.removeSpan(span);
         }
 
         for (Part part : list) {
@@ -311,8 +323,10 @@ public class RichEditText extends EditText implements TextWatcher {
             if (start - 1 < 0 || start + 1 > getEditableText().length()) {
                 return false;
             } else {
-                UnderlineSpan[] before = getEditableText().getSpans(start - 1, start, UnderlineSpan.class);
-                UnderlineSpan[] after = getEditableText().getSpans(start, start + 1, UnderlineSpan.class);
+                UnderlineSpan[] before = getEditableText()
+                        .getSpans(start - 1, start, UnderlineSpan.class);
+                UnderlineSpan[] after = getEditableText()
+                        .getSpans(start, start + 1, UnderlineSpan.class);
                 return before.length > 0 && after.length > 0;
             }
         } else {
@@ -343,7 +357,8 @@ public class RichEditText extends EditText implements TextWatcher {
             return;
         }
 
-        getEditableText().setSpan(new StrikethroughSpan(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        StrikethroughSpan span = new StrikethroughSpan();
+        getEditableText().setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     protected void strikethroughInvalid(int start, int end) {
@@ -351,12 +366,14 @@ public class RichEditText extends EditText implements TextWatcher {
             return;
         }
 
-        StrikethroughSpan[] spans = getEditableText().getSpans(start, end, StrikethroughSpan.class);
+        Editable editable = getEditableText();
+        StrikethroughSpan[] spans = editable.getSpans(start, end, StrikethroughSpan.class);
         List<Part> list = new ArrayList<>();
 
         for (StrikethroughSpan span : spans) {
-            list.add(new Part(getEditableText().getSpanStart(span), getEditableText().getSpanEnd(span)));
-            getEditableText().removeSpan(span);
+            Part part = new Part(editable.getSpanStart(span), editable.getSpanEnd(span));
+            list.add(part);
+            editable.removeSpan(span);
         }
 
         for (Part part : list) {
@@ -381,8 +398,10 @@ public class RichEditText extends EditText implements TextWatcher {
             if (start - 1 < 0 || start + 1 > getEditableText().length()) {
                 return false;
             } else {
-                StrikethroughSpan[] before = getEditableText().getSpans(start - 1, start, StrikethroughSpan.class);
-                StrikethroughSpan[] after = getEditableText().getSpans(start, start + 1, StrikethroughSpan.class);
+                StrikethroughSpan[] before = getEditableText()
+                        .getSpans(start - 1, start, StrikethroughSpan.class);
+                StrikethroughSpan[] after = getEditableText()
+                        .getSpans(start, start + 1, StrikethroughSpan.class);
                 return before.length > 0 && after.length > 0;
             }
         } else {
@@ -438,7 +457,9 @@ public class RichEditText extends EditText implements TextWatcher {
             }
 
             if (bulletStart < bulletEnd) {
-                getEditableText().setSpan(new MyBulletSpan(bulletColor, bulletRadius, bulletGapWidth), bulletStart, bulletEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                MyBulletSpan span = new MyBulletSpan(bulletColor, bulletRadius, bulletGapWidth);
+                getEditableText().setSpan(
+                        span, bulletStart, bulletEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
     }
@@ -472,7 +493,8 @@ public class RichEditText extends EditText implements TextWatcher {
             }
 
             if (bulletStart < bulletEnd) {
-                BulletSpan[] spans = getEditableText().getSpans(bulletStart, bulletEnd, BulletSpan.class);
+                BulletSpan[] spans = getEditableText().getSpans(
+                        bulletStart, bulletEnd, BulletSpan.class);
                 for (BulletSpan span : spans) {
                     getEditableText().removeSpan(span);
                 }
@@ -570,7 +592,9 @@ public class RichEditText extends EditText implements TextWatcher {
             }
 
             if (quoteStart < quoteEnd) {
-                getEditableText().setSpan(new MyQuoteSpan(quoteColor, quoteStripeWidth, quoteGapWidth), quoteStart, quoteEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                MyQuoteSpan span = new MyQuoteSpan(quoteColor, quoteStripeWidth, quoteGapWidth);
+                getEditableText().setSpan(
+                        span, quoteStart, quoteEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
     }
@@ -604,7 +628,8 @@ public class RichEditText extends EditText implements TextWatcher {
             }
 
             if (quoteStart < quoteEnd) {
-                QuoteSpan[] spans = getEditableText().getSpans(quoteStart, quoteEnd, QuoteSpan.class);
+                QuoteSpan[] spans = getEditableText()
+                        .getSpans(quoteStart, quoteEnd, QuoteSpan.class);
                 for (QuoteSpan span : spans) {
                     getEditableText().removeSpan(span);
                 }
@@ -684,7 +709,8 @@ public class RichEditText extends EditText implements TextWatcher {
         }
 
         linkInvalid(start, end);
-        getEditableText().setSpan(new MyURLSpan(link, linkColor, linkUnderline), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        MyURLSpan span = new MyURLSpan(link, linkColor, linkUnderline);
+        getEditableText().setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
     // Remove all span in selection, not like the boldInvalid()
@@ -798,7 +824,9 @@ public class RichEditText extends EditText implements TextWatcher {
             return false;
         }
 
-        return historyCursor < historyList.size() - 1 || historyCursor >= historyList.size() - 1 && inputLast != null;
+        return historyCursor < historyList.size() - 1
+                || historyCursor >= historyList.size() - 1
+                && inputLast != null;
     }
 
     public boolean undoValid() {
@@ -849,19 +877,28 @@ public class RichEditText extends EditText implements TextWatcher {
 
     public void hideSoftInput() {
         clearFocus();
-        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm =
+                (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm == null) {
+            return;
+        }
         imm.hideSoftInputFromWindow(getWindowToken(), 0);
     }
 
     public void showSoftInput() {
         requestFocus();
-        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm =
+                (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm == null) {
+            return;
+        }
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
     }
 
     public void fromHtml(String source) {
         SpannableStringBuilder builder = new SpannableStringBuilder();
-        builder.append(HtmlParser.fromHtml(source, new GlideImageGeter(getContext(), this)));
+        Context context = getContext();
+        builder.append(HtmlParser.fromHtml(source, new GlideImageGeter(context, this, glideRequests)));
         switchToKnifeStyle(builder, 0, builder.length());
         setText(builder);
     }
@@ -881,7 +918,8 @@ public class RichEditText extends EditText implements TextWatcher {
             int spanEnd = editable.getSpanEnd(span);
             spanEnd = 0 < spanEnd && spanEnd < editable.length() && editable.charAt(spanEnd) == '\n' ? spanEnd - 1 : spanEnd;
             editable.removeSpan(span);
-            editable.setSpan(new MyBulletSpan(bulletColor, bulletRadius, bulletGapWidth), spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            MyBulletSpan bulletSpan = new MyBulletSpan(bulletColor, bulletRadius, bulletGapWidth);
+            editable.setSpan(bulletSpan, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         QuoteSpan[] quoteSpans = editable.getSpans(start, end, QuoteSpan.class);
@@ -890,7 +928,8 @@ public class RichEditText extends EditText implements TextWatcher {
             int spanEnd = editable.getSpanEnd(span);
             spanEnd = 0 < spanEnd && spanEnd < editable.length() && editable.charAt(spanEnd) == '\n' ? spanEnd - 1 : spanEnd;
             editable.removeSpan(span);
-            editable.setSpan(new MyQuoteSpan(quoteColor, quoteStripeWidth, quoteGapWidth), spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            MyQuoteSpan quoteSpan = new MyQuoteSpan(quoteColor, quoteStripeWidth, quoteGapWidth);
+            editable.setSpan(quoteSpan, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         URLSpan[] urlSpans = editable.getSpans(start, end, URLSpan.class);
@@ -898,7 +937,8 @@ public class RichEditText extends EditText implements TextWatcher {
             int spanStart = editable.getSpanStart(span);
             int spanEnd = editable.getSpanEnd(span);
             editable.removeSpan(span);
-            editable.setSpan(new MyURLSpan(span.getURL(), linkColor, linkUnderline), spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            MyURLSpan urlSpan = new MyURLSpan(span.getURL(), linkColor, linkUnderline);
+            editable.setSpan(urlSpan, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
     }

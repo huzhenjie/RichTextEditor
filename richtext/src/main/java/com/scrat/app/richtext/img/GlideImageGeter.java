@@ -11,12 +11,11 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.bumptech.glide.load.resource.gif.GifDrawable;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.GenericRequestBuilder;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
+import com.scrat.app.richtext.glide.GlideRequest;
+import com.scrat.app.richtext.glide.GlideRequests;
 
 import java.util.HashSet;
 
@@ -29,6 +28,8 @@ public class GlideImageGeter implements Html.ImageGetter {
     private HashSet<GifDrawable> gifDrawables;
     private final Context mContext;
     private final TextView mTextView;
+    private GlideRequest<GifDrawable> gifLoadRequest;
+    private GlideRequest<Bitmap> bitmapLoadRequest;
 
     public void recycle() {
         targets.clear();
@@ -39,11 +40,13 @@ public class GlideImageGeter implements Html.ImageGetter {
         gifDrawables.clear();
     }
 
-    public GlideImageGeter(Context context, TextView textView) {
+    public GlideImageGeter(Context context, TextView textView, GlideRequests glideRequests) {
         this.mContext = context;
         this.mTextView = textView;
         targets = new HashSet<>();
         gifDrawables = new HashSet<>();
+        gifLoadRequest = glideRequests.asGif();
+        bitmapLoadRequest = glideRequests.asBitmap();
 //        mTextView.setTag(R.id.img_tag, this);
     }
 
@@ -53,17 +56,15 @@ public class GlideImageGeter implements Html.ImageGetter {
             return null;
 
         final UrlDrawable urlDrawable = new UrlDrawable();
-        GenericRequestBuilder load;
         final Target target;
         if (isGif(url)) {
-            load = Glide.with(mContext).load(url).asGif();
             target = new GifTarget(urlDrawable);
+            gifLoadRequest.load(url).into(target);
         } else {
-            load = Glide.with(mContext).load(url).asBitmap();
             target = new BitmapTarget(urlDrawable);
+            bitmapLoadRequest.load(url).into(target);
         }
         targets.add(target);
-        load.into(target);
         return urlDrawable;
     }
 
@@ -81,7 +82,7 @@ public class GlideImageGeter implements Html.ImageGetter {
         }
 
         @Override
-        public void onResourceReady(GifDrawable resource, GlideAnimation<? super GifDrawable> glideAnimation) {
+        public void onResourceReady(GifDrawable resource, Transition<? super GifDrawable> transition) {
             int w = getScreenSize(mContext).x;
             int hh = resource.getIntrinsicHeight();
             int ww = resource.getIntrinsicWidth();
@@ -93,7 +94,7 @@ public class GlideImageGeter implements Html.ImageGetter {
             gifDrawables.add(resource);
             resource.setCallback(mTextView);
             resource.start();
-            resource.setLoopCount(GlideDrawable.LOOP_FOREVER);
+            resource.setLoopCount(GifDrawable.LOOP_FOREVER);
             mTextView.setText(mTextView.getText());
             mTextView.invalidate();
         }
@@ -102,12 +103,12 @@ public class GlideImageGeter implements Html.ImageGetter {
     private class BitmapTarget extends SimpleTarget<Bitmap> {
         private final UrlDrawable urlDrawable;
 
-        public BitmapTarget(UrlDrawable urlDrawable) {
+        private BitmapTarget(UrlDrawable urlDrawable) {
             this.urlDrawable = urlDrawable;
         }
 
         @Override
-        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+        public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
             Drawable drawable = new BitmapDrawable(mContext.getResources(), resource);
             int w = getScreenSize(mContext).x;
             int hh = drawable.getIntrinsicHeight();
@@ -125,7 +126,9 @@ public class GlideImageGeter implements Html.ImageGetter {
     private Point getScreenSize(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Point screenSize = new Point();
-        wm.getDefaultDisplay().getSize(screenSize);
+        if (wm != null) {
+            wm.getDefaultDisplay().getSize(screenSize);
+        }
         return screenSize;
     }
 }
