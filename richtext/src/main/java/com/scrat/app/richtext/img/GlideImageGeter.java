@@ -2,12 +2,10 @@ package com.scrat.app.richtext.img;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.bumptech.glide.load.resource.gif.GifDrawable;
@@ -16,6 +14,7 @@ import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.scrat.app.richtext.glide.GlideRequest;
 import com.scrat.app.richtext.glide.GlideRequests;
+import com.scrat.app.richtext.util.Util;
 
 import java.util.HashSet;
 
@@ -26,8 +25,7 @@ public class GlideImageGeter implements Html.ImageGetter {
 
     private HashSet<Target> targets;
     private HashSet<GifDrawable> gifDrawables;
-    private final Context mContext;
-    private final TextView mTextView;
+    private final TextView textView;
     private GlideRequest<GifDrawable> gifLoadRequest;
     private GlideRequest<Bitmap> bitmapLoadRequest;
 
@@ -40,9 +38,8 @@ public class GlideImageGeter implements Html.ImageGetter {
         gifDrawables.clear();
     }
 
-    public GlideImageGeter(Context context, TextView textView, GlideRequests glideRequests) {
-        this.mContext = context;
-        this.mTextView = textView;
+    public GlideImageGeter(TextView textView, GlideRequests glideRequests) {
+        this.textView = textView;
         targets = new HashSet<>();
         gifDrawables = new HashSet<>();
         gifLoadRequest = glideRequests.asGif();
@@ -52,16 +49,17 @@ public class GlideImageGeter implements Html.ImageGetter {
 
     @Override
     public Drawable getDrawable(String url) {
-        if (url == null)
+        if (url == null) {
             return null;
+        }
 
         final UrlDrawable urlDrawable = new UrlDrawable();
         final Target target;
         if (isGif(url)) {
-            target = new GifTarget(urlDrawable);
+            target = new GifTarget(urlDrawable, textView, gifDrawables);
             gifLoadRequest.load(url).into(target);
         } else {
-            target = new BitmapTarget(urlDrawable);
+            target = new BitmapTarget(urlDrawable, textView);
             bitmapLoadRequest.load(url).into(target);
         }
         targets.add(target);
@@ -73,62 +71,65 @@ public class GlideImageGeter implements Html.ImageGetter {
         return index > 0 && "gif".toUpperCase().equals(path.substring(index + 1).toUpperCase());
     }
 
-    private class GifTarget extends SimpleTarget<GifDrawable> {
+    private static class GifTarget extends SimpleTarget<GifDrawable> {
         private final UrlDrawable urlDrawable;
+        private TextView textView;
+        private HashSet<GifDrawable> gifDrawables;
 
-
-        private GifTarget(UrlDrawable urlDrawable) {
+        private GifTarget(
+                UrlDrawable urlDrawable, TextView textView, HashSet<GifDrawable> gifDrawables) {
             this.urlDrawable = urlDrawable;
+            this.textView = textView;
+            this.gifDrawables = gifDrawables;
         }
 
         @Override
         public void onResourceReady(GifDrawable resource, Transition<? super GifDrawable> transition) {
-            int w = getScreenSize(mContext).x;
+            int w = Util.getScreenWidth(textView.getContext())
+                    - textView.getPaddingRight()
+                    - textView.getPaddingLeft();
             int hh = resource.getIntrinsicHeight();
             int ww = resource.getIntrinsicWidth();
-            int high = hh * (w - 50) / ww;
-            Rect rect = new Rect(20, 20, w - 30, high);
+            int high = hh * w / ww;
+            Rect rect = new Rect(0, 0, w, high);
             resource.setBounds(rect);
             urlDrawable.setBounds(rect);
             urlDrawable.setDrawable(resource);
             gifDrawables.add(resource);
-            resource.setCallback(mTextView);
+            resource.setCallback(textView);
             resource.start();
             resource.setLoopCount(GifDrawable.LOOP_FOREVER);
-            mTextView.setText(mTextView.getText());
-            mTextView.invalidate();
+            textView.setText(textView.getText());
+            textView.invalidate();
         }
+
     }
 
-    private class BitmapTarget extends SimpleTarget<Bitmap> {
+    private static class BitmapTarget extends SimpleTarget<Bitmap> {
         private final UrlDrawable urlDrawable;
+        private TextView textView;
 
-        private BitmapTarget(UrlDrawable urlDrawable) {
+        private BitmapTarget(UrlDrawable urlDrawable, TextView textView) {
             this.urlDrawable = urlDrawable;
+            this.textView = textView;
         }
 
         @Override
         public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-            Drawable drawable = new BitmapDrawable(mContext.getResources(), resource);
-            int w = getScreenSize(mContext).x;
-            int hh = drawable.getIntrinsicHeight();
-            int ww = drawable.getIntrinsicWidth();
-            int high = hh * (w - 40) / ww;
-            Rect rect = new Rect(20, 20, w - 20, high);
+            Drawable drawable = new BitmapDrawable(textView.getContext().getResources(), resource);
+            int screenWidth = Util.getScreenWidth(textView.getContext())
+                    - textView.getPaddingRight()
+                    - textView.getPaddingLeft();
+            int drawableHeight = drawable.getIntrinsicHeight();
+            int drawableWidth = drawable.getIntrinsicWidth();
+            int targetHeight = drawableHeight * screenWidth / drawableWidth;
+            Rect rect = new Rect(0, 0, screenWidth, targetHeight);
             drawable.setBounds(rect);
             urlDrawable.setBounds(rect);
             urlDrawable.setDrawable(drawable);
-            mTextView.setText(mTextView.getText());
-            mTextView.invalidate();
+            textView.setText(textView.getText());
+            textView.invalidate();
         }
     }
 
-    private Point getScreenSize(Context context) {
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Point screenSize = new Point();
-        if (wm != null) {
-            wm.getDefaultDisplay().getSize(screenSize);
-        }
-        return screenSize;
-    }
 }

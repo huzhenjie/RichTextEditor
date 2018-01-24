@@ -897,8 +897,7 @@ public class RichEditText extends AppCompatEditText implements TextWatcher {
 
     public void fromHtml(String source) {
         SpannableStringBuilder builder = new SpannableStringBuilder();
-        Context context = getContext();
-        builder.append(HtmlParser.fromHtml(source, new GlideImageGeter(context, this, glideRequests)));
+        builder.append(HtmlParser.fromHtml(source, new GlideImageGeter(this, glideRequests)));
         switchToKnifeStyle(builder, 0, builder.length());
         setText(builder);
     }
