@@ -44,6 +44,53 @@ dependencies {
 }
 ```
 
+## Example
+
+In your layout
+
+```
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_above="@id/tools"
+    android:layout_alignParentTop="true"
+    android:fillViewport="true">
+
+    <com.scrat.app.richtext.RichEditText
+        android:id="@+id/rich_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:gravity="top|start"
+        android:paddingEnd="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:scrollbars="vertical"
+        app:bulletColor="#FF2196F3"
+        app:bulletGapWidth="8dp"
+        app:bulletRadius="2dp"
+        app:historyEnable="true"
+        app:historySize="99"
+        app:linkColor="#FF2196F3"
+        app:linkUnderline="true"
+        app:quoteCapWidth="2dp"
+        app:quoteColor="#FF2196F3"
+        app:quoteStripeWidth="8dp" />
+</ScrollView>
+```
+
+In your `Activity`
+
+```
+RichEditText richEditText = (RichEditText) findViewById(R.id.rich_text);
+richEditText.fromHtml(yourHtmlStr);
+```
+
+More example [click here](https://github.com/huzhenjie/RichTextEditor/blob/master/app/src/main/java/com/scrat/app/richtexteditor/MainActivity.java)
+
+
 # Important
 
 ```
