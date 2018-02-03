@@ -1,6 +1,5 @@
 package com.scrat.app.richtext.img;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -97,8 +96,8 @@ public class GlideImageGeter implements Html.ImageGetter {
             urlDrawable.setDrawable(resource);
             gifDrawables.add(resource);
             resource.setCallback(textView);
-            resource.start();
             resource.setLoopCount(GifDrawable.LOOP_FOREVER);
+            resource.start();
             textView.setText(textView.getText());
             textView.invalidate();
         }
