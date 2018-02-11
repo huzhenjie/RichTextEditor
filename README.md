@@ -4,18 +4,18 @@ Android 下的富文本编辑器
 
 ## Features
 
-> Redo
-> Undo
-> Bold
-> Bullet
-> Clear
-> Italic
-> Quote
-> Underline
-> StrikeThrough
-> Link
+* Redo
+* Undo
+* Bold
+* Bullet
+* Clear
+* Italic
+* Quote
+* Underline
+* StrikeThrough
+* Link
 
-User `Glide 4` lib. Support `gif`
+Use `Glide 4` lib. Support `gif`
 
 ## Screenshots
 
@@ -42,7 +42,7 @@ allprojects {
 
 ```
 dependencies {
-    compile 'com.github.huzhenjie:RichTextEditor:1.0.3'
+    compile 'com.github.huzhenjie:RichTextEditor:1.0.4'
 }
 ```
 
@@ -90,6 +90,42 @@ RichEditText richEditText = (RichEditText) findViewById(R.id.rich_text);
 richEditText.fromHtml(yourHtmlStr);
 ```
 
+### Image
+
+```
+richEditText.image(imageUri);
+```
+
+### Bold
+
+```
+richEditText.bold(!richEditText.contains(RichEditText.FORMAT_BOLD));
+```
+
+### Italic
+
+```
+richEditText.italic(!richEditText.contains(RichEditText.FORMAT_ITALIC));
+```
+
+### Underline
+
+```
+richEditText.underline(!richEditText.contains(RichEditText.FORMAT_UNDERLINED));
+```
+
+### Bullet
+
+```
+richEditText.bullet(!richEditText.contains(RichEditText.FORMAT_BULLET));
+```
+
+### Quote
+
+```
+richEditText.quote(!richEditText.contains(RichEditText.FORMAT_QUOTE));
+```
+
 More example [click here](https://github.com/huzhenjie/RichTextEditor/blob/master/app/src/main/java/com/scrat/app/richtexteditor/MainActivity.java)
 
 
@@ -99,4 +135,3 @@ More example [click here](https://github.com/huzhenjie/RichTextEditor/blob/maste
 1.0.3 Glide version 4.3.0
 1.0.2 Glide version 3.7.0
 ```
-

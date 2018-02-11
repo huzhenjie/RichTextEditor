@@ -241,7 +241,6 @@ public class RichEditText extends AppCompatEditText implements TextWatcher {
     public void image(final Uri uri, final int maxWidth) {
         glideRequests.asBitmap()
                 .load(uri)
-                .thumbnail(0.1f)
                 .centerCrop()
                 .error(R.drawable.ic_pic_fill)
                 .placeholder(R.drawable.ic_pic_fill)
